@@ -9,7 +9,7 @@ New added functions:<br>
 ```
 10 rem minit  -- motion init
 10 rem moveto -- moveto(x,y,z,speed)
-10 rem movepre -- moverel(x,y,z,speed)
+10 rem moverel -- moverel(x,y,z,speed)
 20 i1 = minit()
 30 i2 = moveto(10,10,10,30)
 40 i3 = moverel(10,10,10,30)
