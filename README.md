@@ -18,3 +18,6 @@ New added functions:<br>
 70 print i3
 ```
 
+## Usage
+python3 b.py test.bas
+
