@@ -3,7 +3,7 @@
 ## Introduction
 
 A BASIC script used for robot control. <br>
-Original check readme.org.md to learn supported syntax. <https://github.com/richpl/PyBasic> <br>
+You can study the basic howto from <https://github.com/richpl/PyBasic> <br>
 New added functions:<br>
 
 ```
