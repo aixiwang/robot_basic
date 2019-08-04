@@ -24,8 +24,8 @@
 290 ret = moverel(1,0,200)
 300 t = slp(1000)
 310 print "test moverelmulti =>"
-320 ret1 = MOVERELPRE(1,0,200)
-320 ret2 = MOVERELPRE(2,1,200)
+320 ret1 = MOVERELPRE(1,0,500)
+321 ret2 = MOVERELPRE(2,1,500)
 330 ret3 = MOVERELMULTI(3)
 340 t = slp(1000)
 350 loc1 = getloc(1)
