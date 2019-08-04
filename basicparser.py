@@ -4,7 +4,9 @@ from basictoken import BASICToken as Token
 from flowsignal import FlowSignal
 import math
 import random
-from xyz import *
+#from xyz import *
+from mc import *
+import time
 
 """Implements a BASIC array, which may have up
 to three dimensions of fixed size.
@@ -178,6 +180,8 @@ class BASICParser:
         elif self.__token.category == Token.READ:
             self.__readstmt()
             return None
+            
+                    
             
 
         else:
@@ -914,15 +918,320 @@ class BASICParser:
 
         :return: The result of the function
 
-        """
+        === new added functions ===
+        
+        int DELAY(ms_n)
+        int CHECKONLINE(void)
+        int CLOSELOCNOTI(void)
+        int STOPALL(void)
+        int STOPALLE(void)
+        int CLRLOC(void)
 
+        int GETAXISSTS(axis) - done
+        int GETPARAM(axis,param_idx)       
+        int SETPARAM(axis,low_speed,speed,accel_time)
+
+        int MOVE(axis,n)
+        int MOVEREL(axis,d,n)
+        int MOVERELPRE(axis,d,n)
+        int MOVERELMULTI(axis_flag)
+        
+        """
         self.__advance()  # Advance past function name
 
         # Process arguments according to function
         if category == Token.RND:
             return random.random()
 
+        #---------------------------------------------
+        # API for motion control -- start
+        #---------------------------------------------
+
+        elif category == Token.DELAY:
+            try:
+                self.__consume(Token.LEFTPAREN)
+                self.__expr()
+                p1 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                #self.__expr()
+                #p2 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                #self.__expr()
+                #p3 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                #self.__expr()
+                #p4 = self.__operand_stack.pop()
+                self.__consume(Token.RIGHTPAREN)
+               
+                time.sleep(p1)
+                return 0
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to CHECKONLINE in line " +
+                                 str(self.__line_number))
+
+                                 
+        elif category == Token.CHECKONLINE:
+            try:
+                retcode = mc_online_check()
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to CHECKONLINE in line " +
+                                 str(self.__line_number))
+                                 
+        elif category == Token.CLOSELOCNOTI:
+            try:
+                retcode = mc_stop_rt_loc()
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to CLOSELOCNOTI in line " +
+                                 str(self.__line_number))
+
+        elif category == Token.STOPALL:
+            try:
+                retcode = mc_stop_all()
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to STOPALL in line " +
+                                 str(self.__line_number))
+
+        elif category == Token.STOPALLE:
+            try:
+                retcode = mc_stop_all_e()
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to STOPALLE in line " +
+                                 str(self.__line_number))
+
+        elif category == Token.CLRLOC:
+            try:
+                retcode = mc_clr_cur_loc()
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to CLRLOC in line " +
+                                 str(self.__line_number))
+                                 
+        elif category == Token.GETPARAM:
+            try:
             
+                self.__consume(Token.LEFTPAREN)
+                self.__expr()
+                p1 = self.__operand_stack.pop()
+                self.__consume(Token.COMMA)
+                self.__expr()
+                p2 = self.__operand_stack.pop()
+                self.__consume(Token.COMMA)
+                #self.__expr()
+                #p3 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                #self.__expr()
+                #p4 = self.__operand_stack.pop()
+                self.__consume(Token.RIGHTPAREN)
+                retcode = mc_get_param(p1,p2)
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to GETPARAM in line " +
+                                 str(self.__line_number))
+
+        elif category == Token.SETPARAM:
+            try:
+                #-----------------------------------
+                self.__consume(Token.LEFTPAREN)
+                
+                self.__expr()
+                p1 = self.__operand_stack.pop()
+                self.__consume(Token.COMMA)
+                
+                self.__expr()
+                p2 = self.__operand_stack.pop()
+                self.__consume(Token.COMMA)
+                
+                self.__expr()
+                p3 = self.__operand_stack.pop()
+                self.__consume(Token.COMMA)
+                
+                self.__expr()
+                p4 = self.__operand_stack.pop()
+                
+                self.__consume(Token.RIGHTPAREN)
+                #-----------------------------------
+
+                retcode = mc_set_param(p1,p2,p3,p4)
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to SETPARAM in line " +
+                                 str(self.__line_number))
+
+
+
+        elif category == Token.GETAXISSTS:
+            try:
+
+                #-----------------------------------
+                self.__consume(Token.LEFTPAREN)
+                
+                self.__expr()
+                p1 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p2 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p3 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p4 = self.__operand_stack.pop()
+                
+                self.__consume(Token.RIGHTPAREN)
+                #-----------------------------------
+
+        
+                retcode = mc_get_axis_sts(p1)
+            
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to GETAXISSTS in line " +
+                                 str(self.__line_number))
+
+        elif category == Token.MOVE:
+            try:
+            
+                #-----------------------------------
+                self.__consume(Token.LEFTPAREN)
+                
+                self.__expr()
+                p1 = self.__operand_stack.pop()
+                self.__consume(Token.COMMA)
+                
+                self.__expr()
+                p2 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p3 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p4 = self.__operand_stack.pop()
+                
+                self.__consume(Token.RIGHTPAREN)
+                #-----------------------------------
+                retcode = mc_move(p1,p2)
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to MOVE in line " +
+                                 str(self.__line_number))
+
+        elif category == Token.MOVEREL:
+            try:
+            
+                #-----------------------------------
+                self.__consume(Token.LEFTPAREN)
+                
+                self.__expr()
+                p1 = self.__operand_stack.pop()
+                self.__consume(Token.COMMA)
+                
+                self.__expr()
+                p2 = self.__operand_stack.pop()
+                self.__consume(Token.COMMA)
+                
+                self.__expr()
+                p3 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p4 = self.__operand_stack.pop()
+                
+                self.__consume(Token.RIGHTPAREN)
+                #-----------------------------------
+                
+                retcode = mc_move_rel(p1,p2,p3)
+                
+                return retcode
+
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to MOVEREL in line " +
+                                 str(self.__line_number))                                 
+                                 
+        elif category == Token.MOVERELPRE:
+            try:
+            
+                #-----------------------------------
+                self.__consume(Token.LEFTPAREN)
+                
+                self.__expr()
+                p1 = self.__operand_stack.pop()
+                self.__consume(Token.COMMA)
+                
+                self.__expr()
+                p2 = self.__operand_stack.pop()
+                self.__consume(Token.COMMA)
+                
+                self.__expr()
+                p3 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p4 = self.__operand_stack.pop()
+                
+                self.__consume(Token.RIGHTPAREN)
+                #-----------------------------------
+                
+                retcode = mc_move_rel_pre(p1,p2,p3)
+                
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to MOVERELPRE in line " +
+                                 str(self.__line_number))                                 
+
+        elif category == Token.MOVERELMULTI:
+            try:
+                #-----------------------------------
+                self.__consume(Token.LEFTPAREN)
+                
+                self.__expr()
+                p1 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p2 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p3 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p4 = self.__operand_stack.pop()
+                
+                self.__consume(Token.RIGHTPAREN)
+                #-----------------------------------
+        
+                retcode = mc_move_rel_multi(p1)
+            
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to MOVERELMULTI in line " +
+                                 str(self.__line_number))                                 
+                                
+                                 
+        '''    
         elif category == Token.MINIT:
             try:
                 # TODO
@@ -992,7 +1301,12 @@ class BASICParser:
                 print(ValueError("Invalid value supplied to MOVEREL in line " +
                                  str(self.__line_number)))
                 return -1
-                
+        '''
+        #---------------------------------------------
+        # API for motion control -- end
+        #---------------------------------------------
+
+        
         if category == Token.POW:
             self.__consume(Token.LEFTPAREN)
 
@@ -1012,6 +1326,7 @@ class BASICParser:
             except ValueError:
                 raise ValueError("Invalid value supplied to POW in line " +
                                  str(self.__line_number))
+                                 
 
         self.__consume(Token.LEFTPAREN)
 
@@ -1083,9 +1398,6 @@ class BASICParser:
             except ValueError:
                 raise ValueError("Invalid value supplied to TAN in line " +
                                  str(self.__line_number))
-
-
-
 
                                  
         else:

@@ -74,9 +74,19 @@ class BASICToken:
         DATA            = 56  # DATA keyword
         READ            = 57  # READ keyword
                               
-        MINIT           = 58
-        MOVETO          = 59
-        MOVEREL         = 60
+        CHECKONLINE     = 58
+        CLOSELOCNOTI    = 59
+        STOPALL         = 60
+        STOPALLE        = 61
+        GETPARAM        = 62
+        SETPARAM        = 63
+        CLRLOC          = 64
+        GETAXISSTS      = 65
+        MOVE            = 66
+        MOVEREL         = 67
+        MOVERELPRE      = 68
+        MOVERELMULTI    = 69
+        DELAY           = 70
         
         
 
@@ -91,7 +101,9 @@ class BASICToken:
         'UNSIGNEDFLOAT', 'STRING', 'TO', 'NEW', 'EQUAL',
         'COMMA', 'STOP', 'COLON', 'ON', 'POW', 'SQR', 'ABS',
         'DIM', 'RANDOMIZE', 'RND', 'ATN', 'COS', 'EXP',
-        'LOG', 'SIN', 'TAN', 'DATA', 'READ','MINIT','MOVETO','MOVEREL']
+        'LOG', 'SIN', 'TAN', 'DATA', 'READ','MINIT',
+        'CHECKONLINE','CLOSELOCNOTI','STOPALL','STOPALLE','GETPARAM','SETPARAM','CLRLOC','GETAXISSTS',
+        'MOVE','MOVEREL','MOVERELPRE','MOVERELMULTI','DELAY']
 
         smalltokens = {'=': ASSIGNOP, '(': LEFTPAREN, ')': RIGHTPAREN,
                        '+': PLUS, '-': MINUS, '*': TIMES, '/': DIVIDE,
@@ -113,11 +125,25 @@ class BASICToken:
                     'RANDOMIZE': RANDOMIZE, 'RND': RND,
                     'ATN': ATN, 'COS': COS, 'EXP': EXP,
                     'LOG': LOG, 'SIN': SIN, 'TAN': TAN,
-                    'DATA': DATA, 'READ': READ,'MINIT':MINIT,
-                    'MOVETO':MOVETO,'MOVEREL':MOVEREL}
+                    'DATA': DATA, 'READ': READ,
+                    'CHECKONLINE':CHECKONLINE,
+                    'CLOSELOCNOTI':CLOSELOCNOTI,
+                    'STOPALL':STOPALL,
+                    'STOPALLE':STOPALLE,
+                    'GETPARAM':GETPARAM,
+                    'SETPARAM':SETPARAM,
+                    'CLRLOC':CLRLOC,
+                    'GETAXISSTS':GETAXISSTS,
+                    'MOVE':MOVE,
+                    'MOVEREL':MOVEREL,
+                    'MOVERELPRE':MOVERELPRE,
+                    'MOVERELMULTI':MOVERELMULTI,
+                    'DELAY':DELAY}
 
         # Functions
-        functions = {ABS, ATN, COS, EXP, LOG, POW, RND, SIN, SQR, TAN, MINIT, MOVETO, MOVEREL}
+        functions = {ABS, ATN, COS, EXP, LOG, POW, RND, SIN, SQR, TAN, 
+                     CHECKONLINE,CLOSELOCNOTI,STOPALL,STOPALLE,GETPARAM,SETPARAM,CLRLOC,GETAXISSTS,
+                     MOVE,MOVEREL,MOVERELPRE,MOVERELMULTI,DELAY}
 
         def __init__(self, column, category, lexeme):
 

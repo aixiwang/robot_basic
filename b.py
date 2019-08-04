@@ -1,6 +1,6 @@
 #! /usr/bin/python
 #-----------------------------------------------------------------------
-# robot_basic: a tool to support BASIC programming for GRBL based robot
+# robot_basic: a tool to support BASIC programming for robot control
 #
 #
 #
@@ -32,13 +32,7 @@ def readfile(filename):
 def main():
     banner = (
         """
-        PPPP   Y   Y  BBBB    AAA    SSSS    I     CCC
-        P   P   Y Y   B   B  A   A  S        I    C   
-        P   P   Y Y   B   B  A   A  S        I    C
-        PPPP     Y    BBBB   AAAAA  SSSS     I    C
-        P        Y    B   B  A   A      S    I    C
-        P        Y    B   B  A   A      S    I    C
-        P        Y    BBBB   A   A  SSSS     I     CCC
+               R O B O T   B A S I C
         """)
     print(banner)
 
