@@ -27,7 +27,8 @@ else:
 SERIAL_TIMEOUT = 1
 s = None
 
-serialport_port = '/dev/ttyUSB0'
+#serialport_port = '/dev/ttyUSB0'
+serialport_port = 'COM5'
 serialport_baud = 115200
 
 #-------------------------
@@ -39,7 +40,13 @@ def to_bytes(bytes_or_str):
     else:
         value = bytes_or_str
     return value # Instance of bytes
-
+    
+#-------------------------
+# int_to_bytes
+#-------------------------
+def int_to_bytes(i):
+    return i.to_bytes(2,byteorder='little',signed=False)[0:1]
+    
 #-------------------------
 # to_str
 #-------------------------  
@@ -49,6 +56,19 @@ def to_str(bytes_or_str):
     else:
         value = bytes_or_str
     return value # Instance of str
+
+#-------------------------
+# to_hex
+#-------------------------      
+def to_hex(bytes_or_str):
+    return to_bytes(bytes_or_str).hex()
+
+#-------------------------
+# from_hex
+#-------------------------    
+def from_hex(bytes_or_str):
+    return bytes.fromhex(to_str(bytes_or_str))
+    
     
 #-------------------------
 # open_serial
@@ -57,57 +77,64 @@ def open_serial():
     global s
     s = serial.Serial(serialport_port,serialport_baud,parity=serial.PARITY_NONE,timeout=SERIAL_TIMEOUT)
 
+
 #-------------------------
 # decode_mc
 #-------------------------
-def decode_mc(data_b):
+def decode_mc(data):
     #print('decode_mc hex_str:',data.encode('hex'))
     
-    data = to_str(data_b)
+    #data = to_str(data_b)
     len_2 = len(data)
     if  len_2!= 8:
         #print('decode_mc fail 1')
-        return -1,0,''
+        return -1,0,None
         
-    if ord(data[0]) != 0xa3:
+    if (data[0]) != 0xa3:
         #print('decode_mc fail 2')
-        return -1,0,''
+        return -1,0,None
 
     # check checksum
     cs = 0
     for i in range(0,len_2-1):
-        #print hex(ord(data[i]))
-        cs += ord(data[i])
+        #print hex((data[i]))
+        cs += (data[i])
         
     #print 'cs 1:',hex(cs)
     cs = cs % 256
     #print 'cs 2:',hex(cs)
 
-    if cs != ord(data[len_2-1]):
+    if cs != data[len_2-1]:
         #print('decode_mc fail 3')
-        return -1,0,''   
+        return -1,0,None   
 
-    return 0, ord(data[1]),data[2:7]
+    return 0, (data[1]),data[2:7]
 
 #-------------------------
 # encode_mc
 #------------------------- 
 def encode_mc(cmd,axis,data):
-    s1 = '\x3a' + chr(cmd) + axis + data
-
+    if axis == None and data == None:
+        s1 = b'\x3a' + int_to_bytes(cmd)
+    elif axis != None and data == None:
+        s1 = b'\x3a' + int_to_bytes(cmd) + int_to_bytes(axis)
+    else:
+        s1 = b'\x3a' + int_to_bytes(cmd) + int_to_bytes(axis) + to_bytes(data)
+    #s1 = '\x3a'
+    #print('s1(hex):',to_hex(s1))
     # caculate cs
     cs = 0
     len_1 = len(s1)
-    #print len_1
+    #print('len:',len_1)
     for i in range(0,len_1):
-        cs += ord(s1[i])
+        cs += s1[i]
+        #print('cs:',cs)
     cs = cs % 256
-    s1 = s1 + chr(cs)
+    #print('cs:',cs, 's1:',to_hex(s1))
+    s1 = s1 + int_to_bytes(cs)
 
-    #print('encode_mc hex_str:',s1.encode('hex'))
-    #print('type:',type(s1))
-    s1_b = to_bytes(s1)
-    return s1_b
+    #print('s1(hex):',to_hex(s1))
+    return s1
     
 #------------------
 # mc_online_check
@@ -116,16 +143,16 @@ def mc_online_check():
     global s
     open_serial()
     
-    out_str = encode_mc(0x55,'','')
-    #print('write:',out_str.encode('hex'))
+    out_str = encode_mc(0x55,None,None)
+    #print('write:',to_hex(out_str))
     s.write(out_str)
 
     time.sleep(0.01)
     resp = s.read(8)
-    #print('read:',resp.encode('hex'))
+    #print('read:',resp.hex())
     retcode,func,data = decode_mc(resp)
     s.close()    
-    #print(retcode,func,data.encode('hex'))
+    #print(retcode,func,data)
     if retcode == 0 and func == 0xaa:
         return 0
     else:
@@ -138,7 +165,7 @@ def mc_stop_rt_loc():
     global s
     open_serial()
 
-    out_str = encode_mc(0xd4,'','')
+    out_str = encode_mc(0xd4,None,None)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
     s.close()
@@ -148,11 +175,11 @@ def mc_stop_rt_loc():
 #------------------
 # mc_get_cur_loc
 #------------------
-def mc_get_cur_loc():
+def mc_get_cur_loc(axis):
     global s
     open_serial()
     
-    out_str = encode_mc(0xd2,chr(0xff),'')
+    out_str = encode_mc(0xd2,(0xff),None)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
 
@@ -166,17 +193,17 @@ def mc_get_cur_loc():
     while i < (8*8):
         retcode,func,data = decode_mc(resp[i:i+8])
         if retcode == 0:
-            p = (ord(data[1]) << 24) + (ord(data[2]) << 16) + (ord(data[3]) << 8) + (ord(data[4]))
-            if ord(data[0]) == 1:
+            p = ((data[1]) << 24) + ((data[2]) << 16) + ((data[3]) << 8) + ((data[4]))
+            if (data[0]) == 1:
                 p = p * (-1)
             p_all.append(p)
         else:
-            return -1,p_all
+            return -1
     
     
         i += 8
    
-    return 0,p_all
+    return p_all[(axis-1)]
     
     
 #------------------
@@ -186,7 +213,7 @@ def mc_get_axis_sts(axis_i):
     global s
     open_serial()
     
-    out_str = encode_mc(0xd6,chr(1 << (axis_i-1)),'')
+    out_str = encode_mc(0xd6,(1 << (axis_i-1)),None)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
 
@@ -200,9 +227,9 @@ def mc_get_axis_sts(axis_i):
     i = 0
 
     retcode,func,data = decode_mc(resp[i:i+8])
-    if retcode == 0 and func == 0xb6 and ord(data[0]) == (1 << (axis_i-1)):
-        p = (ord(data[1]) << 24) + (ord(data[2]) << 16) + (ord(data[3]) << 8) + (ord(data[4]))
-        #if ord(data[0]) == 1:
+    if retcode == 0 and func == 0xb6 and (data[0]) == (1 << (axis_i-1)):
+        p = ((data[1]) << 24) + ((data[2]) << 16) + ((data[3]) << 8) + ((data[4]))
+        #if (data[0]) == 1:
         #    p = p * (-1)
     else:
         return -1
@@ -216,7 +243,7 @@ def mc_get_axis_sts(axis_i):
 def mc_clr_cur_loc():
     global s
     open_serial()
-    out_str = encode_mc(0xd3,chr(0xff),'')
+    out_str = encode_mc(0xd3,(0xff),None)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
 
@@ -234,7 +261,7 @@ def mc_clr_cur_loc():
 def mc_get_param(axis_i,p_n):
     global s
     open_serial()
-    out_str = encode_mc(0xd5,chr(0xff),'')
+    out_str = encode_mc(0xd5,(0xff),None)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
 
@@ -249,7 +276,7 @@ def mc_get_param(axis_i,p_n):
     while i < (8*3*8):
         retcode,func,data = decode_mc(resp[i:i+8])
         if retcode == 0:
-            p = (ord(data[1]) << 24) + (ord(data[2]) << 16) + (ord(data[3]) << 8) + (ord(data[4]))
+            p = ((data[1]) << 24) + ((data[2]) << 16) + ((data[3]) << 8) + ((data[4]))
             p_all.append(p)
         else:
             return -1
@@ -268,11 +295,11 @@ def mc_set_param(axis_i,p1,p2,p3):
     global s
     open_serial()
      
-    data = chr((p1 >> 24) & 0xff) + chr((p1 >> 16) & 0xff) + chr((p1 >> 8) & 0xff) + chr(p1 & 0xff)
-    data += chr((p2 >> 24) & 0xff) + chr((p2 >> 16) & 0xff) + chr((p2 >> 8) & 0xff) + chr(p2 & 0xff)   
-    data += chr((p3 >> 24) & 0xff) + chr((p3 >> 16) & 0xff) + chr((p3 >> 8) & 0xff) + chr(p3 & 0xff)
+    data = int_to_bytes((p1 >> 24) & 0xff) + int_to_bytes((p1 >> 16) & 0xff) + int_to_bytes((p1 >> 8) & 0xff) + int_to_bytes(p1 & 0xff)
+    data += int_to_bytes((p2 >> 24) & 0xff) + int_to_bytes((p2 >> 16) & 0xff) + int_to_bytes((p2 >> 8) & 0xff) + int_to_bytes(p2 & 0xff)   
+    data += int_to_bytes((p3 >> 24) & 0xff) + int_to_bytes((p3 >> 16) & 0xff) + int_to_bytes((p3 >> 8) & 0xff) + int_to_bytes(p3 & 0xff)
     
-    out_str = encode_mc(0xda,chr(1 << (axis_i-1)),data)
+    out_str = encode_mc(0xda,(1 << (axis_i-1)),data)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
     s.close()    
@@ -288,11 +315,11 @@ def mc_set_param_save(axis_i,p1,p2,p3):
     global s
     open_serial()
      
-    data = chr((p1 >> 24) & 0xff) + chr((p1 >> 16) & 0xff) + chr((p1 >> 8) & 0xff) + chr(p1 & 0xff)
-    data += chr((p2 >> 24) & 0xff) + chr((p2 >> 16) & 0xff) + chr((p2 >> 8) & 0xff) + chr(p2 & 0xff)   
-    data += chr((p3 >> 24) & 0xff) + chr((p3 >> 16) & 0xff) + chr((p3 >> 8) & 0xff) + chr(p3 & 0xff)
+    data = int_to_bytes((p1 >> 24) & 0xff) + int_to_bytes((p1 >> 16) & 0xff) + int_to_bytes((p1 >> 8) & 0xff) + int_to_bytes(p1 & 0xff)
+    data += int_to_bytes((p2 >> 24) & 0xff) + int_to_bytes((p2 >> 16) & 0xff) + int_to_bytes((p2 >> 8) & 0xff) + int_to_bytes(p2 & 0xff)   
+    data += int_to_bytes((p3 >> 24) & 0xff) + int_to_bytes((p3 >> 16) & 0xff) + int_to_bytes((p3 >> 8) & 0xff) + int_to_bytes(p3 & 0xff)
     
-    out_str = encode_mc(0xdd,chr(1 << (axis_i-1)),data)
+    out_str = encode_mc(0xdd,(1 << (axis_i-1)),data)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
     s.close()    
@@ -304,7 +331,7 @@ def mc_set_param_save(axis_i,p1,p2,p3):
 def mc_stop_all():
     global s
     open_serial()
-    out_str = encode_mc(0xfc,'\xff','\x4a')
+    out_str = encode_mc(0xfc,0xff,b'\x4a')
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
     
@@ -329,7 +356,7 @@ def mc_stop_all():
 def mc_stop_all_e():
     global s
     open_serial()
-    out_str = encode_mc(0xfc,'\xff','\x49')
+    out_str = encode_mc(0xfc,0xff,b'\x49')
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
     time.sleep(0.01)
@@ -350,9 +377,9 @@ def mc_stop_all_e():
 def mc_move(axis_i,n):
     global s
     open_serial()
-    data = chr((n >> 24) & 0xff) + chr((n >> 16) & 0xff) + chr((n >> 8) & 0xff) + chr(n & 0xff)
+    data = int_to_bytes((n >> 24) & 0xff) + int_to_bytes((n >> 16) & 0xff) + int_to_bytes((n >> 8) & 0xff) + int_to_bytes(n & 0xff)
 
-    out_str = encode_mc(0xfb,chr(1 << (axis_i-1)),data)
+    out_str = encode_mc(0xfb,(1 << (axis_i-1)),data)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
     s.close()    
@@ -384,9 +411,9 @@ def mc_move(axis_i,n):
 def mc_move_rel(axis_i,d,n):
     global s
     open_serial()
-    data = chr(d) + chr((n >> 24) & 0xff) + chr((n >> 16) & 0xff) + chr((n >> 8) & 0xff) + chr(n & 0xff)
+    data = int_to_bytes(d) + int_to_bytes((n >> 24) & 0xff) + int_to_bytes((n >> 16) & 0xff) + int_to_bytes((n >> 8) & 0xff) + int_to_bytes(n & 0xff)
 
-    out_str = encode_mc(0xfa,chr(1 << (axis_i-1)),data)
+    out_str = encode_mc(0xfa,(1 << (axis_i-1)),data)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
     s.close()    
@@ -401,9 +428,9 @@ def mc_move_rel(axis_i,d,n):
 def mc_move_rel_pre(axis_i,d,n):
     global s
     open_serial()
-    data = chr(d) + chr((n >> 24) & 0xff) + chr((n >> 16) & 0xff) + chr((n >> 8) & 0xff) + chr(n & 0xff)
+    data = int_to_bytes(d) + int_to_bytes((n >> 24) & 0xff) + int_to_bytes((n >> 16) & 0xff) + int_to_bytes((n >> 8) & 0xff) + int_to_bytes(n & 0xff)
 
-    out_str = encode_mc(0x81,chr(1 << (axis_i-1)),data)
+    out_str = encode_mc(0x81,(1 << (axis_i-1)),data)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
     s.close()    
@@ -412,11 +439,11 @@ def mc_move_rel_pre(axis_i,d,n):
 #---------------------
 # mc_move_rel_multi
 #---------------------  
-def mc_move_rel_multi(axis_x):
+def mc_move_rel_multi(axis_mask):
     global s
     open_serial()
 
-    out_str = encode_mc(0x82,chr(axis_x),'')
+    out_str = encode_mc(0x82,(axis_mask),None)
     #print('write:',out_str.encode('hex'))
     s.write(out_str)
     s.close()
@@ -460,17 +487,19 @@ if __name__ == '__main__':
 
         print('-------------------------')       
         # test encode_mc
-        s1 = encode_mc(0x55,'','')
-        if s1 == to_bytes('\x3a\x55\x8f'):
+        s1 = encode_mc(0x55,None,None)
+        if s1 == b'\x3a\x55\x8f':
             print('encode_mc passed')
         else:
             print('encode_mc failed')
             
         print('-------------------------')           
         # test decode_mc
-        s1 = '\xa3\xaa\x00\x00\x00\x00\x00\x4d'
-        retcode,func,data = decode_mc(to_bytes(s1))
-        if retcode == 0 and func == 0xaa and data == '\x00\x00\x00\x00\x00':
+        s1 = b'\xa3\xaa\x00\x00\x00\x00\x00\x4d'
+        
+        
+        retcode,func,data = decode_mc(s1)
+        if retcode == 0 and func == 0xaa and data == b'\x00\x00\x00\x00\x00':
             print('decode_mc passed')
         else:
             print('decode_mc failed')
@@ -486,8 +515,8 @@ if __name__ == '__main__':
 
         print('-------------------------')
         # mc_get_cur_loc(0)
-        print('test:mc_get_cur_loc')
-        print(mc_get_cur_loc())
+        print('test:mc_get_cur_loc(1)')
+        print(mc_get_cur_loc(1))
 
         print('-------------------------')
         # mc_clr_cur_loc(0)
@@ -496,7 +525,7 @@ if __name__ == '__main__':
 
         print('-------------------------')
         print('test:mc_get_param')
-        print(mc_get_param())
+        print(mc_get_param(1,1))
         
         
         print('-------------------------')
@@ -505,7 +534,7 @@ if __name__ == '__main__':
           
         print('-------------------------')
         print('test:mc_set_param')
-        print(mc_set_param(1,10,4000,30))
+        print(mc_set_param(1,11,4000,31))
         
         #print('-------------------------')
         #print('test:mc_set_param_save')
@@ -519,13 +548,8 @@ if __name__ == '__main__':
         print('test:mc_stop_all_e')
         print(mc_stop_all_e())        
         
-        retcode,p = mc_get_cur_loc()
-        if retcode == 0:
-            off = p[0]
-            print('current axis 1 loc:',off)
-        else:
-            off = 0
-        if 1:
+
+        if 0:
             print('-------------------------')
             print('mc_move_rel')
 
@@ -543,16 +567,21 @@ if __name__ == '__main__':
         if 1:
             print('-------------------------')
             print('mc_move_rel_pre')
-            print(mc_move_rel_pre(1,0,200))
-            print(mc_move_rel_pre(2,0,200))
+
             
-            n = 10
-            while n > 0:            
-                #print(mc_move(s,1,off))
-                print(mc_move_rel_multi(0x03,3))
+            n = 0
+            while True:            
+                print('mc_move_rel_multi:',n)
+                print(mc_move_rel_pre(1,0,200))
+                print(mc_move_rel_pre(2,0,200))
+            
+                print(mc_move_rel_multi(0x03))
+                print('axis loc 1:',mc_get_cur_loc(1), ' axis loc 2:',mc_get_cur_loc(2))
+                
+
                 time.sleep(1)
-                off += 200                
-                n -= 1
+                #off += 200                
+                n += 1
                 
         
     except Exception as e:

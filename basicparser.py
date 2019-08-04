@@ -919,8 +919,8 @@ class BASICParser:
         :return: The result of the function
 
         === new added functions ===
-        
-        int DELAY(ms_n)
+        float SLP(ms_n)         
+
         int CHECKONLINE(void)
         int CLOSELOCNOTI(void)
         int STOPALL(void)
@@ -934,8 +934,9 @@ class BASICParser:
         int MOVE(axis,n)
         int MOVEREL(axis,d,n)
         int MOVERELPRE(axis,d,n)
-        int MOVERELMULTI(axis_flag)
-        
+        int MOVERELMULTI(axis_mask)
+        int GETlOC(axis)
+       
         """
         self.__advance()  # Advance past function name
 
@@ -947,29 +948,7 @@ class BASICParser:
         # API for motion control -- start
         #---------------------------------------------
 
-        elif category == Token.DELAY:
-            try:
-                self.__consume(Token.LEFTPAREN)
-                self.__expr()
-                p1 = self.__operand_stack.pop()
-                #self.__consume(Token.COMMA)
-                #self.__expr()
-                #p2 = self.__operand_stack.pop()
-                #self.__consume(Token.COMMA)
-                #self.__expr()
-                #p3 = self.__operand_stack.pop()
-                #self.__consume(Token.COMMA)
-                #self.__expr()
-                #p4 = self.__operand_stack.pop()
-                self.__consume(Token.RIGHTPAREN)
-               
-                time.sleep(p1)
-                return 0
-
-            except ValueError:
-                raise ValueError("Invalid value supplied to CHECKONLINE in line " +
-                                 str(self.__line_number))
-
+        #elif category == Token.DELAY:
                                  
         elif category == Token.CHECKONLINE:
             try:
@@ -1157,9 +1136,9 @@ class BASICParser:
                 
                 self.__consume(Token.RIGHTPAREN)
                 #-----------------------------------
-                
+                #print('p1:',p1,' p2:',p2,' p3:',p3)
                 retcode = mc_move_rel(p1,p2,p3)
-                
+                #print('retcode:',retcode)
                 return retcode
 
 
@@ -1229,8 +1208,71 @@ class BASICParser:
             except ValueError:
                 raise ValueError("Invalid value supplied to MOVERELMULTI in line " +
                                  str(self.__line_number))                                 
-                                
+
                                  
+        elif category == Token.GETLOC:
+            try:
+
+                #-----------------------------------
+                self.__consume(Token.LEFTPAREN)
+                
+                self.__expr()
+                p1 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p2 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p3 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p4 = self.__operand_stack.pop()
+                
+                self.__consume(Token.RIGHTPAREN)
+                #-----------------------------------
+
+        
+                retcode = mc_get_cur_loc(p1)
+            
+                return retcode
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to GETLOC in line " +
+                                 str(self.__line_number))
+
+        elif category == Token.SLP:
+            try:
+
+                #-----------------------------------
+                self.__consume(Token.LEFTPAREN)
+                
+                self.__expr()
+                p1 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p2 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p3 = self.__operand_stack.pop()
+                #self.__consume(Token.COMMA)
+                
+                #self.__expr()
+                #p4 = self.__operand_stack.pop()
+                
+                self.__consume(Token.RIGHTPAREN)
+                #-----------------------------------
+
+                time.sleep(p1/1000.0)
+                return time.time()
+
+            except ValueError:
+                raise ValueError("Invalid value supplied to SLP in line " +
+                                 str(self.__line_number))                                 
         '''    
         elif category == Token.MINIT:
             try:

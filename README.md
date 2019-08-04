@@ -7,63 +7,67 @@ A BASIC script used for robot control. <br>
 New added functions:<br>
 
 ```
-void DELAY(n)
+float SLP(ms_n)         
+
 int CHECKONLINE(void)
 int CLOSELOCNOTI(void)
 int STOPALL(void)
 int STOPALLE(void)
 int CLRLOC(void)
 
-int GETAXISSTS(axis)
+int GETAXISSTS(axis) - done
 int GETPARAM(axis,param_idx)       
 int SETPARAM(axis,low_speed,speed,accel_time)
 
 int MOVE(axis,n)
 int MOVEREL(axis,d,n)
 int MOVERELPRE(axis,d,n)
-int MOVERELMULTI(axis_flag)
+int MOVERELMULTI(axis_mask)
+int GETlOC(axis)
 ```
 Sample code:<br>        
 ```
-10 rem==========================
-20 rem init
-30 rem==========================
-31 print 'start test ...'
+10 print "start test ..."
+20 ret = slp(1000)
+30 print "time:",ret
 40 ret = checkonline()
-50 print 'checkonline:',ret
-60 ret = closelocnoti()
-70 print 'closelocnoti:',ret
-80 ret = stopall()
-90 print 'stopall:',ret
-100 ret = clrloc()
-110 print 'clrloc:',ret
-120 rem==========================
-130 rem set axis 1-6 parameter
-140 rem==========================
-150 ret = setparam(1,20,4000,200);
-160 print 'setparam axis 1:',ret
-170 ret = setparam(2,20,4000,200);
-180 print 'setparam axis 2:',ret
-190 ret = setparam(3,20,4000,200);
-200 print 'setparam axis 3:',ret
-210 ret = setparam(4,20,4000,200);
-220 print 'setparam axis 4:',ret
-230 ret = setparam(5,20,4000,200);
-240 print 'setparam axis 5:',ret
-250 ret = setparam(6,20,4000,200);
-260 print 'setparam axis 6:',ret
-270 print 'moverel test ...'
-280 for i = 1 to 3
+50 print "checkonline:",ret
+60 ret = getloc(1)
+70 print "getloc:",ret
+100 let ret = clrloc()
+110 print "clrloc:",ret
+150 let ret = setparam(1,20,4000,200)
+160 print "setparam axis 1:",ret
+170 let ret = setparam(2,20,4000,200)
+180 print "setparam axis 2:",ret
+190 let ret = setparam(3,20,4000,200)
+200 print "setparam axis 3:",ret
+210 let ret = setparam(4,20,4000,200)
+220 print "setparam axis 4:",ret
+230 let ret = setparam(5,20,4000,200)
+240 print "setparam axis 5:",ret
+250 let ret = setparam(6,20,4000,200)
+260 print "setparam axis 6:",ret
+270 print "---------------------------"
+280 print "test moverel =>"
 290 ret = moverel(1,0,200)
-300 print 'moverel:',ret,' cnt:',i
-310 delay(1000)
-320 next i   
-330 print 'end of test ...'
-run
+300 t = slp(1000)
+310 print "test moverelmulti =>"
+320 ret1 = MOVERELPRE(1,0,200)
+320 ret2 = MOVERELPRE(2,1,200)
+330 ret3 = MOVERELMULTI(3)
+340 t = slp(1000)
+350 loc1 = getloc(1)
+360 loc2 = getloc(2)
+370 print "loc1:",loc1," loc2:",loc2
+380 print "t:",t," ret3:",ret3
+390 rem if loc1 < 19000 then 280 else 800
+800 rem stop
+810 goto 280
 ```
 
 ## Usage
-python3 b.py test.bas
+python3 b.py test_motion.bas
 
 ## ORIGINAL README
 # A BASIC Interpreter - Program like it's 1979!

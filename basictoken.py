@@ -73,8 +73,8 @@ class BASICToken:
         TAN             = 55  # Tangent function
         DATA            = 56  # DATA keyword
         READ            = 57  # READ keyword
-                              
-        CHECKONLINE     = 58
+        
+        CHECKONLINE     = 58  # added for motion
         CLOSELOCNOTI    = 59
         STOPALL         = 60
         STOPALLE        = 61
@@ -86,8 +86,8 @@ class BASICToken:
         MOVEREL         = 67
         MOVERELPRE      = 68
         MOVERELMULTI    = 69
-        DELAY           = 70
-        
+        SLP           = 70
+        GETLOC          = 71
         
 
         # Displayable names for each token category
@@ -103,7 +103,7 @@ class BASICToken:
         'DIM', 'RANDOMIZE', 'RND', 'ATN', 'COS', 'EXP',
         'LOG', 'SIN', 'TAN', 'DATA', 'READ','MINIT',
         'CHECKONLINE','CLOSELOCNOTI','STOPALL','STOPALLE','GETPARAM','SETPARAM','CLRLOC','GETAXISSTS',
-        'MOVE','MOVEREL','MOVERELPRE','MOVERELMULTI','DELAY']
+        'MOVE','MOVEREL','MOVERELPRE','MOVERELMULTI','SLP','GETLOC']
 
         smalltokens = {'=': ASSIGNOP, '(': LEFTPAREN, ')': RIGHTPAREN,
                        '+': PLUS, '-': MINUS, '*': TIMES, '/': DIVIDE,
@@ -138,12 +138,13 @@ class BASICToken:
                     'MOVEREL':MOVEREL,
                     'MOVERELPRE':MOVERELPRE,
                     'MOVERELMULTI':MOVERELMULTI,
-                    'DELAY':DELAY}
+                    'SLP':SLP,
+                    'GETLOC':GETLOC}
 
         # Functions
         functions = {ABS, ATN, COS, EXP, LOG, POW, RND, SIN, SQR, TAN, 
                      CHECKONLINE,CLOSELOCNOTI,STOPALL,STOPALLE,GETPARAM,SETPARAM,CLRLOC,GETAXISSTS,
-                     MOVE,MOVEREL,MOVERELPRE,MOVERELMULTI,DELAY}
+                     MOVE,MOVEREL,MOVERELPRE,MOVERELMULTI,SLP,GETLOC}
 
         def __init__(self, column, category, lexeme):
 
