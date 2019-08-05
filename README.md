@@ -15,7 +15,7 @@ int STOPALL(void)
 int STOPALLE(void)
 int CLRLOC(void)
 
-int GETAXISSTS(axis) - done
+int GETAXISSTS(axis)
 int GETPARAM(axis,param_idx)       
 int SETPARAM(axis,low_speed,speed,accel_time)
 
